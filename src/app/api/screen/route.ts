@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
       const parseErrors: string[] = [];
       for (const file of files) {
         const name = file.name.toLowerCase();
-        if (!/\.(pdf|docx?|txt)$/.test(name)) {
+        if (!/\.(pdf|docx|txt)$/.test(name)) {
           parseErrors.push(`${file.name}: unsupported file type`);
           continue;
         }
@@ -94,13 +94,15 @@ export async function POST(req: NextRequest) {
           const buffer = Buffer.from(await file.arrayBuffer());
           let text = "";
           if (name.endsWith(".pdf")) text = await parsePDF(buffer);
-          else if (name.endsWith(".docx") || name.endsWith(".doc")) text = await parseDOCX(buffer);
+          else if (name.endsWith(".docx")) text = await parseDOCX(buffer);
           else text = buffer.toString("utf-8");
 
           if (text.trim().length >= 40) resumeTexts.push({ text: normalizeText(text), fileName: file.name });
           else parseErrors.push(`${file.name}: no readable text layer found`);
         } catch {
-          parseErrors.push(`${file.name}: document could not be parsed`);
+          parseErrors.push(
+            `${file.name}: could not be parsed. Save it as PDF or DOCX and upload it again`
+          );
         }
       }
 

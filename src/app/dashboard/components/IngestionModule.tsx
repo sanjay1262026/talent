@@ -62,7 +62,7 @@ export function IngestionModule({ weights, onScreeningComplete }: IngestionModul
   };
 
   const addFiles = useCallback((incoming: File[]) => {
-    const supported = incoming.filter(file => /\.(pdf|docx?|txt)$/i.test(file.name));
+    const supported = incoming.filter(file => /\.(pdf|docx|txt)$/i.test(file.name));
     setFiles(previous => {
       const existing = new Set(previous.map(file => file.name));
       return [...previous, ...supported.filter(file => !existing.has(file.name))];
@@ -182,7 +182,7 @@ export function IngestionModule({ weights, onScreeningComplete }: IngestionModul
             <div className="panel-header">
               <div>
                 <h2 className="panel-title"><UploadCloud size={16} /> Candidate documents</h2>
-                <p className="panel-subtitle">PDF, DOCX, DOC, and TXT up to 10 MB.</p>
+                <p className="panel-subtitle">PDF, DOCX, and TXT up to 10 MB.</p>
               </div>
               <span className="rounded-full bg-[#f1f2f4] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[.08em] text-[#70747d]">Step 02</span>
             </div>
@@ -223,7 +223,7 @@ export function IngestionModule({ weights, onScreeningComplete }: IngestionModul
                     <span className="text-[12px] font-semibold text-[#30333a]">Drop resumes or choose files</span>
                     <span className="mt-1 text-[10px] text-[#8a8e97]">Multiple documents supported</span>
                   </button>
-                  <input ref={fileInputRef} className="hidden" type="file" multiple accept=".pdf,.doc,.docx,.txt" onChange={event => addFiles(Array.from(event.target.files || []))} />
+                  <input ref={fileInputRef} className="hidden" type="file" multiple accept=".pdf,.docx,.txt" onChange={event => addFiles(Array.from(event.target.files || []))} />
                 </>
               )}
 
