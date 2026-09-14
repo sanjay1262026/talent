@@ -9,7 +9,7 @@ TalentOS is a full-stack resume screening and hiring decision-support applicatio
 - PostgreSQL
 - Drizzle ORM and Drizzle Kit
 - JWT authentication in HTTP-only cookies
-- PDF, DOCX, DOC, and TXT parsing
+- PDF, DOCX, and TXT parsing
 - TF-IDF vectorization and cosine similarity
 - Boundary-aware skill matching and synonym resolution
 - Recharts visualizations
@@ -236,7 +236,7 @@ Select **Deploy** in Vercel. After deployment, open the assigned URL, register a
 
 ## Resume upload limits
 
-- Supported file extensions: PDF, DOCX, DOC, and TXT
+- Supported file extensions: PDF, DOCX, and TXT. Legacy `.doc` files must be saved as PDF or DOCX first.
 - Maximum size per file: 10 MB
 - Maximum resumes per screening run: 50
 - Scanned image-only PDFs require OCR before upload because they have no readable text layer
