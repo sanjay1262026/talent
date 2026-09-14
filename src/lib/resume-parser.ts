@@ -16,8 +16,9 @@ export function extractName(text: string): string {
   const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
 
   const ignoredLine = /(?:@|https?:\/\/|linkedin|github|resume|curriculum vitae|technical tools?|skills?|skill set|area of expertise|professional summary|professional experience|work experience|education|experience|objective|summary|projects?|certifications?|languages?|references?|phone|email|address|additional information|personal information|contact information|profile|about me|career objective|key competencies|core competencies|school|college|university|institute|academy|institution|campus|department|bachelor|master|degree|diploma)\b/i;
+  const nameWord = "(?:[A-Z](?:[.'-]?[a-z]+)?|[A-Z][a-z]+(?:[.'-][A-Z][a-z]+)?)";
   const namePatterns = [
-    /^[A-Z][a-z]+(?:[.'-][A-Z][a-z]+)?(?:\s+[A-Z][a-z]+(?:[.'-][A-Z][a-z]+)?){1,3}$/,
+    new RegExp(`^${nameWord}(?:\\s+${nameWord}){1,3}$`),
     /^[A-Z][A-Z.'-]+(?:\s+[A-Z][A-Z.'-]+){1,3}$/,
   ];
   const skillLine = new RegExp(`(?:^|\\b)(?:${ALL_SKILLS.map(skill => skill.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(?:\\b|$)`, "i");
