@@ -34,6 +34,32 @@ async function parsePDF(buffer: Buffer): Promise<string> {
   }
 }
 
+async function parsePDFWithOCR(buffer: Buffer): Promise<string> {
+  const { pdf } = await import("pdf-to-img");
+  const { createWorker } = await import("tesseract.js");
+  const document = await pdf(buffer, { scale: 2, format: "jpg" });
+  const worker = await createWorker("eng");
+  const pages: string[] = [];
+
+  try {
+    for await (const page of document) {
+      const result = await worker.recognize(page);
+      if (result.data.text.trim()) pages.push(result.data.text);
+    }
+  } finally {
+    await worker.terminate();
+    await document.destroy();
+  }
+
+  return pages.join("\n");
+}
+
+async function parsePDFWithFallback(buffer: Buffer): Promise<string> {
+  const text = await parsePDF(buffer);
+  if (text.trim().length >= 40) return text;
+  return parsePDFWithOCR(buffer);
+}
+
 async function parseDOCX(buffer: Buffer): Promise<string> {
   const mammoth = await import("mammoth");
   const result = await mammoth.extractRawText({ buffer });
@@ -93,15 +119,15 @@ export async function POST(req: NextRequest) {
         try {
           const buffer = Buffer.from(await file.arrayBuffer());
           let text = "";
-          if (name.endsWith(".pdf")) text = await parsePDF(buffer);
+          if (name.endsWith(".pdf")) text = await parsePDFWithFallback(buffer);
           else if (name.endsWith(".docx")) text = await parseDOCX(buffer);
           else text = buffer.toString("utf-8");
 
           if (text.trim().length >= 40) resumeTexts.push({ text: normalizeText(text), fileName: file.name });
-          else parseErrors.push(`${file.name}: no readable text layer found`);
+          else parseErrors.push(`${file.name}: no readable text found, including OCR`);
         } catch {
           parseErrors.push(
-            `${file.name}: could not be parsed. Save it as PDF or DOCX and upload it again`
+            `${file.name}: could not be parsed${name.endsWith(".pdf") ? " or OCR'd" : ""}. Check the file and upload it again`
           );
         }
       }

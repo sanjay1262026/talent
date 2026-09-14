@@ -182,7 +182,7 @@ export function IngestionModule({ weights, onScreeningComplete }: IngestionModul
             <div className="panel-header">
               <div>
                 <h2 className="panel-title"><UploadCloud size={16} /> Candidate documents</h2>
-                <p className="panel-subtitle">PDF, DOCX, and TXT up to 10 MB.</p>
+                <p className="panel-subtitle">PDF, DOCX, and TXT up to 10 MB. Scanned PDFs are OCR&apos;d automatically.</p>
               </div>
               <span className="rounded-full bg-[#f1f2f4] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[.08em] text-[#70747d]">Step 02</span>
             </div>
