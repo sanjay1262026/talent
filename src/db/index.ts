@@ -39,4 +39,3 @@ if (databaseUrl) {
 
 export const pool = localPool;
 export const db = databaseInstance;
-

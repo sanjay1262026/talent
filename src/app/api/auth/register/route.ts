@@ -8,18 +8,28 @@ import { signToken } from "@/lib/auth";
 export async function POST(req: NextRequest) {
   try {
     const { name, email, password } = await req.json();
+    const normalizedName = typeof name === "string" ? name.trim() : "";
+    const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
 
-    if (!name || !email || !password) {
+    if (!normalizedName || !normalizedEmail || typeof password !== "string") {
       return NextResponse.json({ error: "All fields are required" }, { status: 400 });
     }
 
-    const existing = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    if (password.length < 8) {
+      return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
+    }
+
+    const existing = await db.select().from(users).where(eq(users.email, normalizedEmail)).limit(1);
     if (existing.length > 0) {
       return NextResponse.json({ error: "Email already registered" }, { status: 409 });
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
-    const [user] = await db.insert(users).values({ name, email, passwordHash }).returning();
+    const [user] = await db.insert(users).values({
+      name: normalizedName,
+      email: normalizedEmail,
+      passwordHash,
+    }).returning();
 
     const token = await signToken({
       userId: user.id,
