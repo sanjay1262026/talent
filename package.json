@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@napi-rs/canvas": "^1.0.9",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/natural": "^5.1.5",
     "@types/nodemailer": "^8.0.1",
