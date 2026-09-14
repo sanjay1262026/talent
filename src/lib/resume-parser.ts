@@ -25,16 +25,24 @@ export function extractName(text: string): string {
 
   // OCR can place a section heading before the name, so inspect the whole header
   // rather than assuming the first extracted line is the candidate's name.
-  for (const line of lines.slice(0, 20)) {
+  const headerLines = lines.slice(0, 20);
+  for (let index = 0; index < headerLines.length; index++) {
+    const line = headerLines[index];
     const candidate = line.split(/[|,–]/)[0].trim();
+    const adjacentInitial = [headerLines[index - 1], headerLines[index + 1]]
+      .find(value => value && /^[A-Z](?:\.)?$/.test(value.trim()));
+    const isSingleNameWithInitial = /^[A-Z][a-z]+(?:[.'-][A-Z][a-z]+)?$/.test(candidate) && Boolean(adjacentInitial);
     if (
       candidate.length >= 3 &&
       candidate.length < 60 &&
       !ignoredLine.test(candidate) &&
       !skillLine.test(candidate) &&
       !/\d|:/.test(candidate) &&
-      namePatterns.some(pattern => pattern.test(candidate))
+      (namePatterns.some(pattern => pattern.test(candidate)) || isSingleNameWithInitial)
     ) {
+      // OCR often places a leading initial on the line immediately above or
+      // below the surname (for example, "S" followed by "Vanajakshamma").
+      if (adjacentInitial) return `${adjacentInitial.replace(/\.$/, "")}. ${candidate}`;
       return candidate;
     }
   }
