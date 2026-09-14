@@ -15,7 +15,7 @@ export function normalizeText(text: string): string {
 export function extractName(text: string): string {
   const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
 
-  const ignoredLine = /(?:@|https?:\/\/|linkedin|github|resume|curriculum vitae|technical tools?|skills?|education|experience|objective|summary|projects?|certifications?|languages?|references?|phone|email|address)\b/i;
+  const ignoredLine = /(?:@|https?:\/\/|linkedin|github|resume|curriculum vitae|technical tools?|skills?|education|experience|objective|summary|projects?|certifications?|languages?|references?|phone|email|address|school|college|university|institute|academy|institution|campus|department|bachelor|master|degree|diploma)\b/i;
   const namePatterns = [
     /^[A-Z][a-z]+(?:[.'-][A-Z][a-z]+)?(?:\s+[A-Z][a-z]+(?:[.'-][A-Z][a-z]+)?){1,3}$/,
     /^[A-Z][A-Z.'-]+(?:\s+[A-Z][A-Z.'-]+){1,3}$/,
@@ -34,6 +34,15 @@ export function extractName(text: string): string {
     ) {
       return candidate;
     }
+  }
+
+  // Some OCR layouts omit the name but preserve the email address. Use its
+  // local part rather than presenting a school or section heading as a name.
+  const email = text.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/)?.[0];
+  if (email) {
+    const localPart = email.split("@")[0].replace(/[._-]+/g, " ").replace(/\d+/g, " ").trim();
+    const emailName = localPart.split(/\s+/).filter(Boolean).map(part => part[0].toUpperCase() + part.slice(1).toLowerCase()).join(" ");
+    if (emailName.length >= 3) return emailName;
   }
 
   return "Unknown Candidate";
