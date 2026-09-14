@@ -9,6 +9,10 @@ const globalForDb = globalThis as typeof globalThis & {
   __arenaNextJsDb?: any;
 };
 
+if (!databaseUrl && process.env.NODE_ENV === "production") {
+  throw new Error("DATABASE_URL is required in production");
+}
+
 let localPool: Pool | null = null;
 let databaseInstance: any = null;
 
