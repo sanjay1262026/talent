@@ -240,6 +240,7 @@ Select **Deploy** in Vercel. After deployment, open the assigned URL, register a
 - Supported file extensions: PDF, DOCX, and TXT. Legacy `.doc` files must be saved as PDF or DOCX first.
 - Maximum size per file: 10 MB
 - Maximum resumes per screening run: 50
+- PDF text is extracted with `unpdf`'s serverless PDF.js build, so uploads work in Vercel's Node.js runtime without a canvas or DOM implementation.
 - Scanned image-only PDFs must be converted to searchable PDFs with OCR before upload
 - Password-protected or corrupted documents are rejected with an error
 

@@ -31,15 +31,14 @@ class PdfTextParseError extends Error {
 }
 
 async function parsePDF(buffer: Buffer): Promise<string> {
-  const { PDFParse } = await import("pdf-parse");
-  const parser = new PDFParse({ data: new Uint8Array(buffer) });
   try {
-    const result = await parser.getText();
+    // unpdf uses PDF.js' serverless build for text extraction and does not
+    // load the canvas-backed browser build that causes DOMMatrix failures on Vercel.
+    const { extractText } = await import("unpdf");
+    const result = await extractText(new Uint8Array(buffer), { mergePages: true });
     return result.text || "";
   } catch (error) {
     throw new PdfTextParseError(error);
-  } finally {
-    await parser.destroy();
   }
 }
 
