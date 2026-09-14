@@ -4,10 +4,9 @@ services:
     container_name: talentos-postgres
     restart: unless-stopped
     environment:
-      environment:
-  POSTGRES_USER: postgres
-  POSTGRES_HOST_AUTH_METHOD: trust
-
+      POSTGRES_USER: postgres
+      POSTGRES_DB: talentos
+      POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
     volumes:
