@@ -39,6 +39,12 @@ class PdfOcrError extends Error {
 }
 
 async function parsePDF(buffer: Buffer): Promise<string> {
+  const canvas = await import("@napi-rs/canvas");
+  const globals = globalThis as Record<string, unknown>;
+  if (!globals.DOMMatrix) globals.DOMMatrix = canvas.DOMMatrix;
+  if (!globals.ImageData) globals.ImageData = canvas.ImageData;
+  if (!globals.Path2D) globals.Path2D = canvas.Path2D;
+
   const { PDFParse } = await import("pdf-parse");
   const parser = new PDFParse({ data: new Uint8Array(buffer) });
   try {
