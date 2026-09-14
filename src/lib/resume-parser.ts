@@ -20,6 +20,7 @@ export function extractName(text: string): string {
     /^[A-Z][a-z]+(?:[.'-][A-Z][a-z]+)?(?:\s+[A-Z][a-z]+(?:[.'-][A-Z][a-z]+)?){1,3}$/,
     /^[A-Z][A-Z.'-]+(?:\s+[A-Z][A-Z.'-]+){1,3}$/,
   ];
+  const skillLine = new RegExp(`(?:^|\\b)(?:${ALL_SKILLS.map(skill => skill.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(?:\\b|$)`, "i");
 
   // OCR can place a section heading before the name, so inspect the whole header
   // rather than assuming the first extracted line is the candidate's name.
@@ -29,6 +30,7 @@ export function extractName(text: string): string {
       candidate.length >= 3 &&
       candidate.length < 60 &&
       !ignoredLine.test(candidate) &&
+      !skillLine.test(candidate) &&
       !/\d|:/.test(candidate) &&
       namePatterns.some(pattern => pattern.test(candidate))
     ) {
