@@ -9,7 +9,7 @@ TalentOS is a full-stack resume screening and hiring decision-support applicatio
 - PostgreSQL
 - Drizzle ORM and Drizzle Kit
 - JWT authentication in HTTP-only cookies
-- PDF, DOCX, and TXT parsing, with automatic OCR fallback for scanned PDFs
+- PDF, DOCX, and TXT parsing
 - TF-IDF vectorization and cosine similarity
 - Boundary-aware skill matching and synonym resolution
 - Recharts visualizations
@@ -225,14 +225,6 @@ Restore your local URL afterward if you still use the local Docker database.
 
 Select **Deploy** in Vercel. After deployment, open the assigned URL, register an account, and run a sample screening.
 
-#### OCR deployment caveats
-
-PDFs with a text layer continue to use `pdf-parse` and do not start OCR. Image-only PDFs are rendered page-by-page with `pdf-to-img` and recognized with `tesseract.js`. The English LSTM language data is bundled at `public/tesseract/eng.traineddata`, so OCR does not depend on a jsDelivr download or a writable function cache.
-
-- The `/api/screen` route uses the Node.js runtime and allows up to 60 seconds. OCR is CPU- and memory-intensive; a large or multi-page scan, or a batch containing many scans, can exceed a host's function timeout even though the 10 MB-per-file and 50-file limits remain enforced. The API reports the affected file instead of silently accepting it.
-- Vercel Node.js functions have a deployment bundle-size limit (250 MB compressed for standard functions). `tesseract.js` and its WASM core consume a meaningful part of that budget; check the generated function size during deployment.
-- Vercel Hobby limits function duration to 10 seconds, so scanned-PDF OCR is not dependable there. Use a plan with a longer Node.js function duration, reduce scan size/page count, or run OCR in a dedicated worker/service for production-scale batches.
-- OCR still requires a Node.js function with enough CPU and memory to render and recognize every page. The bundled language data fixes the common cold-start/network failure, but does not make multi-page OCR reliable within Hobby's 10-second function limit.
 
 ## Deploying with Railway or Render
 
@@ -248,7 +240,7 @@ PDFs with a text layer continue to use `pdf-parse` and do not start OCR. Image-o
 - Supported file extensions: PDF, DOCX, and TXT. Legacy `.doc` files must be saved as PDF or DOCX first.
 - Maximum size per file: 10 MB
 - Maximum resumes per screening run: 50
-- Scanned image-only PDFs are automatically OCR'd when no readable PDF text layer is found
+- Scanned image-only PDFs must be converted to searchable PDFs with OCR before upload
 - Password-protected or corrupted documents are rejected with an error
 
 ## Main workflow

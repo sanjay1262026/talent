@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import path from "node:path";
 import { db } from "@/db";
 import { screeningSessions, candidates } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -31,20 +30,7 @@ class PdfTextParseError extends Error {
   }
 }
 
-class PdfOcrError extends Error {
-  constructor(cause: unknown) {
-    super(`PDF OCR failed: ${cause instanceof Error ? cause.message : String(cause)}`);
-    this.name = "PdfOcrError";
-  }
-}
-
 async function parsePDF(buffer: Buffer): Promise<string> {
-  const canvas = await import("@napi-rs/canvas");
-  const globals = globalThis as Record<string, unknown>;
-  if (!globals.DOMMatrix) globals.DOMMatrix = canvas.DOMMatrix;
-  if (!globals.ImageData) globals.ImageData = canvas.ImageData;
-  if (!globals.Path2D) globals.Path2D = canvas.Path2D;
-
   const { PDFParse } = await import("pdf-parse");
   const parser = new PDFParse({ data: new Uint8Array(buffer) });
   try {
@@ -54,60 +40,6 @@ async function parsePDF(buffer: Buffer): Promise<string> {
     throw new PdfTextParseError(error);
   } finally {
     await parser.destroy();
-  }
-}
-
-async function parsePDFWithOCR(buffer: Buffer): Promise<string> {
-  try {
-    const { pdf } = await import("pdf-to-img");
-    const { createWorker } = await import("tesseract.js");
-    const document = await pdf(buffer, { scale: 1.5, format: "jpg" });
-    // Do not depend on jsDelivr at cold start: Vercel functions may have
-    // restricted egress and the first language download is several MB.
-    const worker = await createWorker("eng", undefined, {
-      langPath: path.join(process.cwd(), "public", "tesseract"),
-      cacheMethod: "none",
-      gzip: false,
-    });
-    const pages: string[] = [];
-
-    try {
-      for await (const page of document) {
-        const result = await worker.recognize(page);
-        if (result.data.text.trim()) pages.push(result.data.text);
-      }
-    } finally {
-      await worker.terminate();
-      await document.destroy();
-    }
-
-    return pages.join("\n");
-  } catch (error) {
-    if (error instanceof PdfOcrError) throw error;
-    throw new PdfOcrError(error);
-  }
-}
-
-async function parsePDFWithFallback(buffer: Buffer): Promise<string> {
-  try {
-    const text = await parsePDF(buffer);
-    if (text.trim().length >= 40) return text;
-    try {
-      return await parsePDFWithOCR(buffer);
-    } catch (error) {
-      throw new PdfOcrError(
-        `PDF has no readable text layer; ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
-  } catch (error) {
-    if (!(error instanceof PdfTextParseError)) throw error;
-    try {
-      return await parsePDFWithOCR(buffer);
-    } catch (ocrError) {
-      throw new PdfOcrError(
-        `${error.message}; ${ocrError instanceof Error ? ocrError.message : String(ocrError)}`
-      );
-    }
   }
 }
 
@@ -170,7 +102,7 @@ export async function POST(req: NextRequest) {
         try {
           const buffer = Buffer.from(await file.arrayBuffer());
           let text = "";
-          if (name.endsWith(".pdf")) text = await parsePDFWithFallback(buffer);
+          if (name.endsWith(".pdf")) text = await parsePDF(buffer);
           else if (name.endsWith(".docx")) text = await parseDOCX(buffer);
           else text = buffer.toString("utf-8");
 
