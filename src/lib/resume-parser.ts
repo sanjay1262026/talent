@@ -14,13 +14,29 @@ export function normalizeText(text: string): string {
 // ─── Name extraction ───────────────────────────────────────────────────────────
 export function extractName(text: string): string {
   const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
-  // Try first non-trivial line that looks like a name
-  for (const line of lines.slice(0, 5)) {
-    if (line.length < 60 && /^[A-Z][a-z]+ [A-Z][a-z]+/.test(line)) {
-      return line.split(/[|,\-–]/)[0].trim();
+
+  const ignoredLine = /(?:@|https?:\/\/|linkedin|github|resume|curriculum vitae|technical tools?|skills?|education|experience|objective|summary|projects?|certifications?|languages?|references?|phone|email|address)\b/i;
+  const namePatterns = [
+    /^[A-Z][a-z]+(?:[.'-][A-Z][a-z]+)?(?:\s+[A-Z][a-z]+(?:[.'-][A-Z][a-z]+)?){1,3}$/,
+    /^[A-Z][A-Z.'-]+(?:\s+[A-Z][A-Z.'-]+){1,3}$/,
+  ];
+
+  // OCR can place a section heading before the name, so inspect the whole header
+  // rather than assuming the first extracted line is the candidate's name.
+  for (const line of lines.slice(0, 20)) {
+    const candidate = line.split(/[|,–]/)[0].trim();
+    if (
+      candidate.length >= 3 &&
+      candidate.length < 60 &&
+      !ignoredLine.test(candidate) &&
+      !/\d|:/.test(candidate) &&
+      namePatterns.some(pattern => pattern.test(candidate))
+    ) {
+      return candidate;
     }
   }
-  return lines[0]?.slice(0, 50) || "Unknown Candidate";
+
+  return "Unknown Candidate";
 }
 
 // ─── Email extraction ──────────────────────────────────────────────────────────
