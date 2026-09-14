@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ArrowRight, Check, GitCompareArrows, MessageSquareText, Scale, UserRoundSearch } from "lucide-react";
 import type { Candidate } from "@/db/schema";
 import { ScoreBar } from "@/components/ScoreBar";
@@ -10,13 +10,11 @@ import { Legend, PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContain
 interface ComparisonModuleProps { candidates: Candidate[]; }
 
 export function ComparisonModule({ candidates }: ComparisonModuleProps) {
-  const [candidateA, setCandidateA] = useState<number | "">("");
-  const [candidateB, setCandidateB] = useState<number | "">("");
+  const [selectedCandidateA, setSelectedCandidateA] = useState<number | "">("");
+  const [selectedCandidateB, setSelectedCandidateB] = useState<number | "">("");
 
-  useEffect(() => {
-    if (!candidateA && candidates[0]) setCandidateA(candidates[0].id);
-    if (!candidateB && candidates[1]) setCandidateB(candidates[1].id);
-  }, [candidates, candidateA, candidateB]);
+  const candidateA = selectedCandidateA !== "" ? selectedCandidateA : (candidates[0]?.id ?? "");
+  const candidateB = selectedCandidateB !== "" ? selectedCandidateB : (candidates[1]?.id ?? "");
 
   const first = candidates.find(candidate => candidate.id === candidateA);
   const second = candidates.find(candidate => candidate.id === candidateB);
@@ -56,9 +54,9 @@ export function ComparisonModule({ candidates }: ComparisonModuleProps) {
 
       <div className="panel mb-5 p-4">
         <div className="grid items-end gap-4 md:grid-cols-[1fr_42px_1fr]">
-          <CandidateSelect label="Candidate A" value={candidateA} candidates={candidates} onChange={setCandidateA} />
+          <CandidateSelect label="Candidate A" value={candidateA} candidates={candidates} onChange={setSelectedCandidateA} />
           <div className="mb-1 hidden h-10 place-items-center rounded-full bg-[#f1f2f4] text-[#70747d] md:grid"><GitCompareArrows size={16} /></div>
-          <CandidateSelect label="Candidate B" value={candidateB} candidates={candidates} onChange={setCandidateB} />
+          <CandidateSelect label="Candidate B" value={candidateB} candidates={candidates} onChange={setSelectedCandidateB} />
         </div>
       </div>
 

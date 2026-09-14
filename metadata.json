@@ -1,0 +1,6 @@
+{
+  "name": "TalentOS",
+  "description": "Evidence-based resume screening, candidate ranking, and hiring decision support for recruiting teams.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
