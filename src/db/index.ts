@@ -1,24 +1,42 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
+import { createMockDb } from "./mock-db";
 
 const databaseUrl = process.env.DATABASE_URL;
 
-if (!databaseUrl) {
-  throw new Error("DATABASE_URL is required");
-}
-
 const globalForDb = globalThis as typeof globalThis & {
   __arenaNextJsPostgresqlPool?: Pool;
+  __arenaNextJsDb?: any;
 };
 
-export const pool =
-  globalForDb.__arenaNextJsPostgresqlPool ??
-  new Pool({
-    connectionString: databaseUrl,
-  });
+let localPool: Pool | null = null;
+let databaseInstance: any = null;
 
-if (process.env.NODE_ENV !== "production") {
-  globalForDb.__arenaNextJsPostgresqlPool = pool;
+if (databaseUrl) {
+  try {
+    localPool =
+      globalForDb.__arenaNextJsPostgresqlPool ??
+      new Pool({
+        connectionString: databaseUrl,
+      });
+
+    if (process.env.NODE_ENV !== "production") {
+      globalForDb.__arenaNextJsPostgresqlPool = localPool;
+    }
+
+    databaseInstance = drizzle(localPool);
+  } catch (error) {
+    console.warn("[TalentOS] PostgreSQL connection failed, falling back to mock:", error);
+    databaseInstance = createMockDb();
+  }
+} else {
+  console.info("[TalentOS] No DATABASE_URL provided — using in-memory database store.");
+  databaseInstance = globalForDb.__arenaNextJsDb ?? createMockDb();
+  if (process.env.NODE_ENV !== "production") {
+    globalForDb.__arenaNextJsDb = databaseInstance;
+  }
 }
 
-export const db = drizzle(pool);
+export const pool = localPool;
+export const db = databaseInstance;
+

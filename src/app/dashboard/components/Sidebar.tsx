@@ -51,6 +51,35 @@ const STATUS_FILTERS = [
   { key: "low_match", label: "Low match", color: "#dd6875" },
 ];
 
+interface WeightSliderProps {
+  label: string;
+  metric: keyof Weights;
+  color: string;
+  weights: Weights;
+  onUpdate: (key: keyof Weights, value: number) => void;
+}
+
+function WeightSlider({ label, metric, color, weights, onUpdate }: WeightSliderProps) {
+  return (
+    <div className="mb-3 last:mb-0">
+      <div className="mb-1.5 flex items-center justify-between text-[10px]">
+        <span className="text-[#a8acb6]">{label}</span>
+        <span className="font-semibold tabular-nums text-white">{Math.round(weights[metric] * 100)}%</span>
+      </div>
+      <input
+        aria-label={`${label} weight`}
+        type="range"
+        min={0}
+        max={100}
+        value={Math.round(weights[metric] * 100)}
+        onChange={event => onUpdate(metric, Number(event.target.value))}
+        className="block h-1 w-full cursor-pointer"
+        style={{ accentColor: color }}
+      />
+    </div>
+  );
+}
+
 export function Sidebar(props: SidebarProps) {
   const {
     user, activeView, onNavigate, weights, onWeightsChange, visibleStatuses,
@@ -63,25 +92,6 @@ export function Sidebar(props: SidebarProps) {
   const updateWeight = (key: keyof Weights, value: number) => {
     onWeightsChange({ ...weights, [key]: value / 100 });
   };
-
-  const Slider = ({ label, metric, color }: { label: string; metric: keyof Weights; color: string }) => (
-    <div className="mb-3 last:mb-0">
-      <div className="mb-1.5 flex items-center justify-between text-[10px]">
-        <span className="text-[#a8acb6]">{label}</span>
-        <span className="font-semibold tabular-nums text-white">{Math.round(weights[metric] * 100)}%</span>
-      </div>
-      <input
-        aria-label={`${label} weight`}
-        type="range"
-        min={0}
-        max={100}
-        value={Math.round(weights[metric] * 100)}
-        onChange={event => updateWeight(metric, Number(event.target.value))}
-        className="block h-1 w-full cursor-pointer"
-        style={{ accentColor: color }}
-      />
-    </div>
-  );
 
   return (
     <aside
@@ -137,10 +147,10 @@ export function Sidebar(props: SidebarProps) {
               <SlidersHorizontal size={13} className="text-[#858995]" />
               <span className="text-[10px] font-semibold uppercase tracking-[.1em] text-[#858995]">Scoring weights</span>
             </div>
-            <Slider label="Skills" metric="skill" color="#6f8aff" />
-            <Slider label="Semantic fit" metric="semantic" color="#8ca0ff" />
-            <Slider label="Experience" metric="experience" color="#55b9a0" />
-            <Slider label="Education" metric="education" color="#d09f55" />
+            <WeightSlider label="Skills" metric="skill" color="#6f8aff" weights={weights} onUpdate={updateWeight} />
+            <WeightSlider label="Semantic fit" metric="semantic" color="#8ca0ff" weights={weights} onUpdate={updateWeight} />
+            <WeightSlider label="Experience" metric="experience" color="#55b9a0" weights={weights} onUpdate={updateWeight} />
+            <WeightSlider label="Education" metric="education" color="#d09f55" weights={weights} onUpdate={updateWeight} />
             <div className={`mt-3 border-t border-[#292c34] pt-3 text-[10px] ${Math.abs(totalWeight - 1) < .001 ? "text-[#68c6a5]" : "text-[#e48c96]"}`}>
               Total allocation {Math.round(totalWeight * 100)}%
             </div>
